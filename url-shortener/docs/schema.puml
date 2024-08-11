@@ -1,0 +1,22 @@
+@startuml
+!include <osa/laptop/laptop>
+!include <osa/hub/hub>
+!include <osa/database/database>
+!include <osa/ics/drive/drive>
+!include <osa/wireless/network/network>
+
+title URL Shortener architecture
+
+rectangle "<$laptop>\nUser" as user
+rectangle "<$network>\nLoad Balancer" as balancer
+rectangle "<$hub>\nWeb servers" as servers
+database "<$database>\nLinks DB" as db
+rectangle "<$drive>\nCache" as cache
+
+user -> balancer : GET https://tinyurl.com/<url>
+balancer -> user : return Long URL
+balancer -> servers
+servers --> db
+servers --> cache
+
+@enduml

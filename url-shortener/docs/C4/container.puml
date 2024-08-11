@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Container>
+
+Person(user, "User", "Fellow customer")
+Container_Boundary(backend, "Shortener") {
+    Container(api, "REST API", "Public API")
+    Container(app, "Shortener core")
+    ContainerDb(linksDb, "Links DB", "Main Database")
+    Container(cache, "Cache", "Most frequently used links")
+}
+
+Rel_R(user, api, "Sends requests")
+Rel_R(api, app, "Uses engine")
+Rel(app, linksDb, "Stores links mappings")
+Rel(app, cache, "Stores most frequently used links")
+
+@enduml

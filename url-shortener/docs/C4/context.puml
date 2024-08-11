@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+
+Person(user, "User", "Fellow customer")
+System(shortener, "URL Shortener", "Target component")
+System_Ext(website, "Website", "Requested page with long URL")
+
+Rel_R(user, shortener, "Sends request to shorten long URL")
+Rel_R(user, shortener, "Requests redirect by short URL")
+Rel_R(shortener, website, "Redirects to requested page")
+
+@enduml
