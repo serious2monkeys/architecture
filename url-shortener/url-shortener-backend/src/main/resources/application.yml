@@ -5,6 +5,9 @@ spring:
     mongodb:
       uri: mongodb://shortener:short_pass@localhost:27017/shortener_db?authSource=admin
       auto-index-creation: true
+    redis:
+      password: redis_pass
+      host: localhost
 shortener:
   nodeId: 255
 springdoc:

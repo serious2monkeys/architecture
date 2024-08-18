@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   mongo:
     image: 'mongo:6-jammy'
@@ -30,11 +31,38 @@ services:
       ME_CONFIG_MONGODB_SERVER: mongo
       ME_CONFIG_MONGODB_PORT: "27017"
     ports:
-      - "0.0.0.0:8081:8081"
+      - "8081:8081"
     networks:
       - MONGO
     depends_on:
       - mongo
+
+  redis:
+    image: bitnami/redis:7.2.5
+    container_name: redis
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
+      - REDIS_PASSWORD=redis_pass
+      - REDIS_MASTER_PASSWORD=master_pass
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    ports:
+      - '6379:6379'
+    volumes:
+      - 'redis_data:/bitnami/redis/data'
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
 
 networks:
   MONGO:
@@ -45,3 +73,5 @@ volumes:
     name: MONGO_DATA
   MONGO_CONFIG:
     name: MONGO_CONFIG
+  redis_data:
+    driver: local
