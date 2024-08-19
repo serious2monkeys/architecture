@@ -37,14 +37,11 @@ services:
     depends_on:
       - mongo
 
-  redis:
-    image: bitnami/redis:7.2.5
-    container_name: redis
+  redis-node-0:
+    image: bitnami/redis-cluster:7.2
     environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
       - REDIS_PASSWORD=redis_pass
-      - REDIS_MASTER_PASSWORD=master_pass
+      - REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
     deploy:
       resources:
         limits:
@@ -56,7 +53,96 @@ services:
     ports:
       - '6379:6379'
     volumes:
-      - 'redis_data:/bitnami/redis/data'
+      - 'redis_data_0:/bitnami/redis/data'
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  redis-node-1:
+    image: bitnami/redis-cluster:7.2
+    environment:
+      - REDIS_PASSWORD=redis_pass
+      - REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
+    ports:
+      - '6380:6379'
+    volumes:
+      - 'redis_data_1:/bitnami/redis/data'
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  redis-node-2:
+    image: bitnami/redis-cluster:7.2
+    environment:
+      - REDIS_PASSWORD=redis_pass
+      - REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
+    ports:
+      - '6381:6379'
+    volumes:
+      - 'redis_data_2:/bitnami/redis/data'
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  redis-node-3:
+    image: bitnami/redis-cluster:7.2
+    environment:
+      - REDIS_PASSWORD=redis_pass
+      - REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
+    ports:
+      - '6382:6379'
+    volumes:
+      - 'redis_data_3:/bitnami/redis/data'
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  redis-node-4:
+    image: bitnami/redis-cluster:7.2
+    environment:
+      - REDIS_PASSWORD=redis_pass
+      - REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
+    ports:
+      - '6383:6379'
+    volumes:
+      - 'redis_data_4:/bitnami/redis/data'
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  redis-node-5:
+    image: bitnami/redis-cluster:7.2
+    environment:
+      - REDIS_PASSWORD=redis_pass
+      - REDIS_CLUSTER_REPLICAS=1
+      - REDISCLI_AUTH=redis_pass
+      - REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
+      - REDIS_CLUSTER_CREATOR=yes
+    ports:
+      - '6384:6379'
+    depends_on:
+      - redis-node-0
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+    volumes:
+      - 'redis_data_5:/bitnami/redis/data'
     healthcheck:
       test: [ "CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping" ]
       interval: 30s
@@ -73,5 +159,15 @@ volumes:
     name: MONGO_DATA
   MONGO_CONFIG:
     name: MONGO_CONFIG
-  redis_data:
+  redis_data_0:
+    driver: local
+  redis_data_1:
+    driver: local
+  redis_data_2:
+    driver: local
+  redis_data_3:
+    driver: local
+  redis_data_4:
+    driver: local
+  redis_data_5:
     driver: local
