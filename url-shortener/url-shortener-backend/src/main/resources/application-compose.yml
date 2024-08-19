@@ -1,0 +1,14 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://shortener:short_pass@mongodb-sharded:27017/shortener_db
+    redis:
+      password: redis_pass
+      cluster:
+        nodes:
+          - 'redis-node-0:6379'
+          - 'redis-node-1:6379'
+          - 'redis-node-2:6379'
+          - 'redis-node-3:6379'
+          - 'redis-node-4:6379'
+          - 'redis-cluster-master:6379'
