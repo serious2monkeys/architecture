@@ -3,7 +3,7 @@ spring:
     name: url-shortener-backend
   data:
     mongodb:
-      uri: mongodb://shortener:short_pass@localhost:27017/shortener_db?authSource=admin
+      uri: mongodb://shortener:short_pass@localhost:27017/shortener_db
       auto-index-creation: true
     redis:
       password: redis_pass

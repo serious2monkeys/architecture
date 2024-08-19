@@ -1,26 +1,152 @@
 version: '3.8'
 services:
-  mongo:
-    image: 'mongo:6-jammy'
-    container_name: mongo
+  mongodb-sharded:
+    image: docker.io/bitnami/mongodb-sharded:7.0
     environment:
-      MONGO_INITDB_DATABASE: shortener_db
-      MONGO_INITDB_ROOT_PASSWORD: secret
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGODB_USER: shortener
-      MONGODB_PASSWORD: short_pass
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-sharded
+      - MONGODB_SHARDING_MODE=mongos
+      - MONGODB_CFG_PRIMARY_HOST=mongodb-cfg-primary
+      - MONGODB_CFG_REPLICA_SET_NAME=mongo_cfg_replicaset
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_ROOT_PASSWORD=secret
+      - MONGODB_ROOT_USER=root
+      - MONGODB_DATABASE=shortener_db
+      - MONGODB_USERNAME=shortener
+      - MONGODB_PASSWORD=short_pass
     ports:
-      - '27017:27017'
-    networks:
-      - MONGO
+      - "27017:27017"
     volumes:
-      - type: volume
-        source: MONGO_DATA
-        target: /data/db
-      - type: volume
-        source: MONGO_CONFIG
-        target: /data/configdb
-      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./scripts:/scripts:ro
+
+  mongodb-shard0-primary:
+    image: docker.io/bitnami/mongodb-sharded:7.0
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-shard0-primary
+      - MONGODB_SHARDING_MODE=shardsvr
+      - MONGODB_MONGOS_HOST=mongodb-sharded
+      - MONGODB_ROOT_PASSWORD=secret
+      - MONGODB_ROOT_USER=root
+      - MONGODB_DATABASE=shortener_db
+      - MONGODB_USERNAME=shortener
+      - MONGODB_PASSWORD=short_pass
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_REPLICA_SET_NAME=shard0
+    volumes:
+      - 'shard0_data:/bitnami'
+
+  mongodb-shard0-secondary:
+    image: docker.io/bitnami/mongodb-sharded:7.0
+    depends_on:
+      - mongodb-shard0-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-shard0-secondary
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_PRIMARY_HOST=mongodb-shard0-primary
+      - MONGODB_INITIAL_PRIMARY_ROOT_USER=root
+      - MONGODB_PRIMARY_ROOT_PASSWORD=secret
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_SHARDING_MODE=shardsvr
+      - MONGODB_REPLICA_SET_NAME=shard0
+    volumes:
+      - 'shard0_sec_data:/bitnami'
+
+  mongodb-shard1-primary:
+    image: docker.io/bitnami/mongodb-sharded:7.0
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-shard1-primary
+      - MONGODB_SHARDING_MODE=shardsvr
+      - MONGODB_MONGOS_HOST=mongodb-sharded
+      - MONGODB_ROOT_PASSWORD=secret
+      - MONGODB_ROOT_USER=root
+      - MONGODB_DATABASE=shortener_db
+      - MONGODB_USERNAME=shortener
+      - MONGODB_PASSWORD=short_pass
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_REPLICA_SET_NAME=shard1
+    volumes:
+      - 'shard1_data:/bitnami'
+
+
+  mongodb-shard1-secondary:
+    image: docker.io/bitnami/mongodb-sharded:7.0
+    depends_on:
+      - mongodb-shard1-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-shard1-secondary
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_PRIMARY_HOST=mongodb-shard1-primary
+      - MONGODB_INITIAL_PRIMARY_ROOT_USER=root
+      - MONGODB_PRIMARY_ROOT_PASSWORD=secret
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_SHARDING_MODE=shardsvr
+      - MONGODB_REPLICA_SET_NAME=shard1
+    volumes:
+      - 'shard1_sec_data:/bitnami'
+
+  mongodb-shard2-primary:
+    image: docker.io/bitnami/mongodb-sharded:7.0
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-shard2-primary
+      - MONGODB_SHARDING_MODE=shardsvr
+      - MONGODB_MONGOS_HOST=mongodb-sharded
+      - MONGODB_ROOT_PASSWORD=secret
+      - MONGODB_ROOT_USER=root
+      - MONGODB_DATABASE=shortener_db
+      - MONGODB_USERNAME=shortener
+      - MONGODB_PASSWORD=short_pass
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_REPLICA_SET_NAME=shard2
+    volumes:
+      - 'shard2_data:/bitnami'
+
+  mongodb-shard2-secondary:
+    image: docker.io/bitnami/mongodb-sharded:7.0
+    depends_on:
+      - mongodb-shard2-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-shard2-secondary
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_PRIMARY_HOST=mongodb-shard2-primary
+      - MONGODB_PRIMARY_ROOT_PASSWORD=secret
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_SHARDING_MODE=shardsvr
+      - MONGODB_REPLICA_SET_NAME=shard2
+    volumes:
+      - 'shard2_sec_data:/bitnami'
+
+  mongodb-cfg-primary:
+    image: docker.io/bitnami/mongodb-sharded:7.0
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-cfg-primary
+      - MONGODB_SHARDING_MODE=configsvr
+      - MONGODB_ROOT_PASSWORD=secret
+      - MONGODB_ROOT_USER=root
+      - MONGODB_DATABASE=shortener_db
+      - MONGODB_USERNAME=shortener
+      - MONGODB_PASSWORD=short_pass
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_REPLICA_SET_NAME=mongo_cfg_replicaset
+    volumes:
+      - 'cfg_data:/bitnami'
+
+  mongodb-cfg-secondary:
+    image: docker.io/bitnami/mongodb-sharded:7.0
+    depends_on:
+      - mongodb-cfg-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-cfg-secondary
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_PRIMARY_HOST=mongodb-cfg-primary
+      - MONGODB_PRIMARY_ROOT_PASSWORD=secret
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+      - MONGODB_REPLICA_SET_NAME=mongo_cfg_replicaset
+      - MONGODB_SHARDING_MODE=configsvr
+    volumes:
+      - 'cfg_sec_data:/bitnami'
 
   mongo-express:
     image: mongo-express:latest
@@ -28,14 +154,12 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: secret
-      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_SERVER: mongodb-sharded
       ME_CONFIG_MONGODB_PORT: "27017"
     ports:
       - "8081:8081"
-    networks:
-      - MONGO
     depends_on:
-      - mongo
+      - mongodb-sharded
 
   redis-node-0:
     image: bitnami/redis-cluster:7.2
@@ -150,15 +274,7 @@ services:
       retries: 5
     restart: unless-stopped
 
-networks:
-  MONGO:
-    name: MONGO
-
 volumes:
-  MONGO_DATA:
-    name: MONGO_DATA
-  MONGO_CONFIG:
-    name: MONGO_CONFIG
   redis_data_0:
     driver: local
   redis_data_1:
@@ -170,4 +286,20 @@ volumes:
   redis_data_4:
     driver: local
   redis_data_5:
+    driver: local
+  shard0_data:
+    driver: local
+  shard0_sec_data:
+    driver: local
+  shard1_data:
+    driver: local
+  shard1_sec_data:
+    driver: local
+  shard2_data:
+    driver: local
+  shard2_sec_data:
+    driver: local
+  cfg_data:
+    driver: local
+  cfg_sec_data:
     driver: local

@@ -7,15 +7,16 @@ import lombok.Builder;
 import lombok.Value;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Sharded;
-import org.springframework.data.mongodb.core.mapping.ShardingStrategy;
 
 import java.time.Instant;
 
 @Value
 @Document(collection = "pages")
-@Sharded(shardingStrategy = ShardingStrategy.HASH, immutableKey = true, shardKey = {"shortUrl", "longUrl"})
+@Sharded(immutableKey = true, shardKey = {"shortUrl", "longUrl"})
+@CompoundIndex(name = "urls_index", def = "{'shortUrl': 1, 'longUrl': 1}", unique = true)
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PageLink {
